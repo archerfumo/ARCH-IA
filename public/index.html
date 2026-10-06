@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>ARCH AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0f19;color:#f5f7fb;font-family:system-ui,-apple-system,Segoe UI,sans-serif;height:100vh}
+.app{height:100%;display:flex;flex-direction:column;max-width:900px;margin:auto}
+header{padding:18px 20px;border-bottom:1px solid #242b3a;display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:grid;place-items:center;font-weight:900}
+h1{font-size:18px;margin:0}.sub{font-size:12px;color:#9ca3af}
+#chat{flex:1;overflow:auto;padding:24px 16px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:82%;padding:12px 15px;border-radius:17px;line-height:1.5;white-space:pre-wrap}
+.user{align-self:flex-end;background:#2563eb}
+.assistant{align-self:flex-start;background:#171d2a;border:1px solid #273044}
+.empty{margin:auto;text-align:center;color:#9ca3af}
+.empty strong{display:block;color:#fff;font-size:26px;margin-bottom:8px}
+form{padding:12px 14px 18px;border-top:1px solid #242b3a;display:flex;gap:9px}
+textarea{flex:1;resize:none;min-height:48px;max-height:130px;border:1px solid #30394c;border-radius:16px;background:#121827;color:#fff;padding:13px;font:inherit;outline:none}
+button{border:0;border-radius:15px;padding:0 18px;background:#7c3aed;color:white;font-weight:700}
+button:disabled{opacity:.5}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">A</div><div><h1>ARCH AI</h1><div class="sub">Seu assistente inteligente 🇲🇿</div></div></header>
+<main id="chat"><div class="empty"><strong>Olá, sou o ARCH AI.</strong>Pergunta-me qualquer coisa.</div></main>
+<form id="form"><textarea id="input" placeholder="Escreva a sua pergunta..." rows="1"></textarea><button id="send">Enviar</button></form>
+</div>
+<script>
+const chat=document.querySelector("#chat"),form=document.querySelector("#form"),input=document.querySelector("#input"),send=document.querySelector("#send");
+let messages=[];
+function add(role,text){const el=document.createElement("div");el.className="msg "+role;el.textContent=text;chat.appendChild(el);chat.scrollTop=chat.scrollHeight}
+form.addEventListener("submit",async e=>{
+e.preventDefault();const text=input.value.trim();if(!text)return;
+if(chat.querySelector(".empty"))chat.querySelector(".empty").remove();
+add("user",text);messages.push({role:"user",content:text});input.value="";send.disabled=true;input.disabled=true;
+try{
+const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages})});
+const data=await r.json();const answer=data.text||data.error||"Erro.";
+add("assistant",answer);messages.push({role:"assistant",content:answer});
+}catch(err){add("assistant","Não consegui ligar ao servidor.");}
+send.disabled=false;input.disabled=false;input.focus();
+});
+input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
+</script>
+</body>
+</html>
